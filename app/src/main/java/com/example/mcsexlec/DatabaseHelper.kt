@@ -59,34 +59,40 @@ class DatabaseHelper(context: Context) :
 
     fun getUserByPhone(phone: String): Cursor? {
         val db = this.readableDatabase
+        // Cursor akan ditutup di LoginActivity, jadi di sini tidak perlu ditutup
         return db.query(TABLE_USERS, null, "$KEY_PHONE = ?", arrayOf(phone), null, null, null)
     }
 
     fun addUser(phone: String, password: String): Long {
-        val db = this.writableDatabase
-        val values = ContentValues().apply {
-            put(KEY_PHONE, phone)
-            put(KEY_PASSWORD, password)
+        // Menggunakan .use untuk menutup database secara otomatis
+        return this.writableDatabase.use { db ->
+            val values = ContentValues().apply {
+                put(KEY_PHONE, phone)
+                put(KEY_PASSWORD, password)
+            }
+            db.insert(TABLE_USERS, null, values)
         }
-        return db.insert(TABLE_USERS, null, values).also { db.close() }
     }
 
     fun isUserRegistered(phone: String): Boolean {
-        val db = this.readableDatabase
-        val cursor = db.query(TABLE_USERS, null, "$KEY_PHONE = ?", arrayOf(phone), null, null, null)
-        val exists = cursor.count > 0
-        cursor.close()
-        return exists
+        // Menggunakan .use untuk menutup database secara otomatis
+        return this.readableDatabase.use { db ->
+            db.query(TABLE_USERS, null, "$KEY_PHONE = ?", arrayOf(phone), null, null, null).use { cursor ->
+                cursor.count > 0
+            }
+        }
     }
 
     fun validateUser(phone: String, password: String): Boolean {
-        val db = this.readableDatabase
-        val cursor = db.query(TABLE_USERS, null, "$KEY_PHONE = ? AND $KEY_PASSWORD = ?", arrayOf(phone, password), null, null, null)
-        val valid = cursor.count > 0
-        cursor.close()
-        return valid
+        // Menggunakan .use untuk menutup database secara otomatis
+        return this.readableDatabase.use { db ->
+            db.query(TABLE_USERS, null, "$KEY_PHONE = ? AND $KEY_PASSWORD = ?", arrayOf(phone, password), null, null, null).use { cursor ->
+                cursor.count > 0
+            }
+        }
     }
 
+    // Fungsi ini tidak digunakan di kode saat ini, tapi jika digunakan, pastikan cursor ditutup
     fun getUserById(userId: Int): Cursor {
         val db = this.readableDatabase
         return db.query(TABLE_USERS, null, "$KEY_USER_ID = ?", arrayOf(userId.toString()), null, null, null)
@@ -95,41 +101,48 @@ class DatabaseHelper(context: Context) :
     // ======================== READ LATER ========================
 
     fun addToReadLater(title: String, publishedAt: String?, urlToImage: String?): Long {
-        val db = this.writableDatabase
-        val values = ContentValues().apply {
-            put(KEY_NEWS_TITLE, title)
-            put(KEY_NEWS_DATE, publishedAt)
-            put(KEY_NEWS_IMAGE, urlToImage)
+        // Menggunakan .use untuk menutup database secara otomatis
+        return this.writableDatabase.use { db ->
+            val values = ContentValues().apply {
+                put(KEY_NEWS_TITLE, title)
+                put(KEY_NEWS_DATE, publishedAt)
+                put(KEY_NEWS_IMAGE, urlToImage)
+            }
+            db.insert(TABLE_READ_LATER, null, values)
         }
-        return db.insert(TABLE_READ_LATER, null, values).also { db.close() }
     }
 
     fun removeFromReadLater(title: String): Int {
-        val db = this.writableDatabase
-        return db.delete(TABLE_READ_LATER, "$KEY_NEWS_TITLE = ?", arrayOf(title)).also { db.close() }
+        // Menggunakan .use untuk menutup database secara otomatis
+        return this.writableDatabase.use { db ->
+            db.delete(TABLE_READ_LATER, "$KEY_NEWS_TITLE = ?", arrayOf(title))
+        }
     }
 
     fun isNewsSaved(title: String): Boolean {
-        val db = this.readableDatabase
-        val cursor = db.query(TABLE_READ_LATER, null, "$KEY_NEWS_TITLE = ?", arrayOf(title), null, null, null)
-        val exists = cursor.count > 0
-        cursor.close()
-        return exists
+        // Menggunakan .use untuk menutup database secara otomatis
+        return this.readableDatabase.use { db ->
+            db.query(TABLE_READ_LATER, null, "$KEY_NEWS_TITLE = ?", arrayOf(title), null, null, null).use { cursor ->
+                cursor.count > 0
+            }
+        }
     }
 
     fun getAllReadLater(): List<NewsArticle> {
         val list = mutableListOf<NewsArticle>()
-        val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM $TABLE_READ_LATER", null)
-        if (cursor.moveToFirst()) {
-            do {
-                val title = cursor.getString(cursor.getColumnIndexOrThrow(KEY_NEWS_TITLE))
-                val date = cursor.getString(cursor.getColumnIndexOrThrow(KEY_NEWS_DATE))
-                val image = cursor.getString(cursor.getColumnIndexOrThrow(KEY_NEWS_IMAGE))
-                list.add(NewsArticle(title, date, image, true))
-            } while (cursor.moveToNext())
+        // Menggunakan .use untuk menutup database dan cursor secara otomatis
+        this.readableDatabase.use { db ->
+            db.rawQuery("SELECT * FROM $TABLE_READ_LATER", null).use { cursor ->
+                if (cursor.moveToFirst()) {
+                    do {
+                        val title = cursor.getString(cursor.getColumnIndexOrThrow(KEY_NEWS_TITLE))
+                        val date = cursor.getString(cursor.getColumnIndexOrThrow(KEY_NEWS_DATE))
+                        val image = cursor.getString(cursor.getColumnIndexOrThrow(KEY_NEWS_IMAGE))
+                        list.add(NewsArticle(title, date, image, true))
+                    } while (cursor.moveToNext())
+                }
+            }
         }
-        cursor.close()
         return list
     }
 }
