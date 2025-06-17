@@ -10,10 +10,12 @@
     <!-- AppBar -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/appbarLayout"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="#F4F3F1"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <ImageView
             android:id="@+id/logoImage"
@@ -35,20 +37,56 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Konten lainnya bisa ditambahkan di bawah sini -->
-    <!-- Contoh teks profil -->
+    <!-- Username -->
+
+    <!-- Tombol Logout -->
+
     <TextView
-        android:id="@+id/tvProfile"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Halaman Profil"
+        android:layout_marginStart="68dp"
+        android:layout_marginTop="212dp"
+        android:text="Username: "
         android:textSize="18sp"
-        app:layout_constraintTop_toBottomOf="@id/appbarLayout"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="24dp" />
+        app:layout_constraintTop_toBottomOf="@id/appbarLayout" />
+
+    <TextView
+        android:id="@+id/tvUsername"
+        android:layout_width="290dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="68dp"
+        android:layout_marginTop="244dp"
+        android:text="Username yang digunakan "
+        android:textSize="18sp"
+        android:background="@drawable/border_username"
+        android:padding="12dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/appbarLayout" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="160dp"
+        android:layout_marginTop="116dp"
+        android:text="Profile"
+        android:textSize="30sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/appbarLayout" />
+
+    <Button
+        android:id="@+id/btnLogout"
+        android:layout_width="98dp"
+        android:layout_height="41dp"
+        android:layout_marginStart="156dp"
+        android:layout_marginTop="332dp"
+        android:backgroundTint="#D3D3D3"
+        android:text="Logout"
+        android:textColor="#000000"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/appbarLayout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
