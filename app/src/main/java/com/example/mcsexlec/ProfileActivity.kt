@@ -35,7 +35,7 @@ class ProfileActivity : AppCompatActivity() {
 
         if (userId != -1) {
             val db = DatabaseHelper(this)
-            val cursor = db.getUserById(userId)
+            val cursor = db.getUserById(userId) // <--- perbaikan di sini
 
             cursor.use {
                 if (it.moveToFirst()) {
@@ -46,6 +46,7 @@ class ProfileActivity : AppCompatActivity() {
         } else {
             tvUsername.text = "User tidak ditemukan"
         }
+
 
         // Logout
         btnLogout.setOnClickListener {

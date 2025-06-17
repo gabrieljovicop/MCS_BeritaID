@@ -75,6 +75,14 @@ class DatabaseHelper(context: Context) :
             db.insert(TABLE_USERS, null, values)
         }
     }
+
+    fun getUserById(userId: Int): Cursor {
+        val db = this.readableDatabase
+        return db.query(TABLE_USERS, null, "$KEY_USER_ID = ?", arrayOf(userId.toString()), null, null, null)
+    }
+
+    // ======================== READ LATER ========================
+
     fun isUserRegistered(phone: String): Boolean {
         return this.readableDatabase.use { db ->
             db.query(TABLE_USERS, null, "$KEY_PHONE = ?", arrayOf(phone), null, null, null).use { cursor ->
