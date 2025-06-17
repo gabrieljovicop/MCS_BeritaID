@@ -9,6 +9,7 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import kotlin.concurrent.thread // Import library thread
 
 class LoginActivity : AppCompatActivity() {
 
@@ -47,20 +48,26 @@ class LoginActivity : AppCompatActivity() {
             } else if (password.isEmpty()) {
                 showError("Password must be filled!")
             } else {
-                // Validate user credentials against the database
-                val userId = getUserId(phoneNumber, password)
-                if (userId != -1) {
-                    // Store userId in SharedPreferences
-                    val editor = sharedPreferences.edit()
-                    editor.putInt("user_id", userId)
-                    editor.apply()
+                // Jalankan validasi di background thread
+                thread {
+                    val userId = getUserId(phoneNumber, password)
 
-                    // Navigate to OTP activity
-                    val intent = Intent(this, OtpActivity::class.java)
-                    startActivity(intent)
-                    finish()  // Close the current LoginActivity
-                } else {
-                    showError("Invalid credentials!")
+                    // Kembali ke UI thread untuk update tampilan
+                    runOnUiThread {
+                        if (userId != -1) {
+                            // Store userId in SharedPreferences
+                            val editor = sharedPreferences.edit()
+                            editor.putInt("user_id", userId)
+                            editor.apply()
+
+                            // Navigate to OTP activity
+                            val intent = Intent(this, OtpActivity::class.java)
+                            startActivity(intent)
+                            finish()  // Close the current LoginActivity
+                        } else {
+                            showError("Invalid credentials!")
+                        }
+                    }
                 }
             }
         }
@@ -82,16 +89,22 @@ class LoginActivity : AppCompatActivity() {
     // Function to check if the user is registered using the database and return userId
     private fun getUserId(phone: String, password: String): Int {
         val isUserValid = databaseHelper.validateUser(phone, password)
-        return if (isUserValid) {
-            // Get the userId after validation
-            val cursor = databaseHelper.getUserByPhone(phone)
-            if (cursor != null && cursor.moveToFirst()) {
-                cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.KEY_USER_ID))
-            } else {
-                -1
-            }
-        } else {
-            -1
+        if (!isUserValid) {
+            return -1
         }
+
+        // Pastikan cursor ditutup dengan benar menggunakan try-finally
+        val cursor = databaseHelper.getUserByPhone(phone)
+        try {
+            if (cursor != null && cursor.moveToFirst()) {
+                // Mengambil user ID dari cursor
+                return cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.KEY_USER_ID))
+            }
+        } finally {
+            // Selalu tutup cursor setelah selesai digunakan untuk menghindari memory leak
+            cursor?.close()
+        }
+
+        return -1
     }
 }

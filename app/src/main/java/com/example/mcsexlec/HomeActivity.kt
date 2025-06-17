@@ -78,9 +78,22 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun fetchNews() {
-        val url = "https://newsapi.org/v2/everything?domains=wsj.com&apiKey=54e30abda28646a8bce6285a767f9104"
+        // API Key GNews baru Anda
+        val gnewsApiKey = "779beec2d161051a25d716245ce04b01"
+
+        // URL untuk GNews API
+        val url = "https://gnews.io/api/v4/top-headlines?category=general&lang=en&country=us&max=10&apikey=$gnewsApiKey"
 
         val requestQueue = Volley.newRequestQueue(this)
+
+        // Inisialisasi DatabaseHelper di luar request agar bisa diakses
+        if (!::databaseHelper.isInitialized) {
+            databaseHelper = DatabaseHelper(this)
+        }
+
+        // --- OPTIMISASI DIMULAI DI SINI ---
+        // 1. Ambil semua judul berita yang sudah disimpan dalam satu kali query
+        val savedNewsTitles = databaseHelper.getAllReadLater().map { it.title }.toSet()
 
         val jsonObjectRequest = JsonObjectRequest(Request.Method.GET, url, null,
             { response ->
@@ -90,17 +103,24 @@ class HomeActivity : AppCompatActivity() {
                 for (i in 0 until articles.length()) {
                     val item = articles.getJSONObject(i)
                     val title = item.getString("title")
+                    // GNews menggunakan "publishedAt"
                     val publishedAt = item.getString("publishedAt")
-                    val imageUrl = item.getString("urlToImage")
-                    val isSaved = databaseHelper.isNewsSaved(title)
+                    // GNews menggunakan "image" untuk URL gambar
+                    val imageUrl = item.getString("image")
+
+                    // 2. Cek ke Set (sangat cepat), bukan ke database di dalam loop
+                    val isSaved = savedNewsTitles.contains(title)
 
                     newsList.add(NewsArticle(title, publishedAt, imageUrl, isSaved))
                 }
+                // --- OPTIMISASI SELESAI ---
 
                 newsAdapter.updateData(newsList)
             },
-            {
-                Toast.makeText(this, "Error fetching news", Toast.LENGTH_SHORT).show()
+            { error ->
+                // Menampilkan pesan error yang lebih jelas di Toast
+                val errorMessage = error.message ?: "Unknown error"
+                Toast.makeText(this, "Error fetching news: $errorMessage", Toast.LENGTH_LONG).show()
             })
 
         requestQueue.add(jsonObjectRequest)
