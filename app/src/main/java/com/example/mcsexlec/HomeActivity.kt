@@ -32,22 +32,36 @@ class HomeActivity : AppCompatActivity() {
             showPopupMenu(view)
         }
 
-        newsAdapter = NewsAdapter(mutableListOf()) { article ->
-            // Cek apakah sudah disimpan
-            val isSaved = databaseHelper.isNewsSaved(article.title)
+        newsAdapter = NewsAdapter(
+            mutableListOf(),
+            // Blok untuk klik tombol bookmark
+            onReadLaterClick = { article ->
+                val isSaved = databaseHelper.isNewsSaved(article.title)
 
-            if (!isSaved) {
-                databaseHelper.addToReadLater(article.title, article.publishedAt, article.urlToImage)
-                article.isSaved = true
-                Toast.makeText(this, "Saved to Read Later", Toast.LENGTH_SHORT).show()
-            } else {
-                databaseHelper.removeFromReadLater(article.title)
-                article.isSaved = false
-                Toast.makeText(this, "Removed from Read Later", Toast.LENGTH_SHORT).show()
+                if (!isSaved) {
+                    // Panggil fungsi dengan parameter URL yang baru ditambahkan
+                    databaseHelper.addToReadLater(article.title, article.publishedAt, article.urlToImage, article.url)
+                    article.isSaved = true
+                    Toast.makeText(this, "Saved to Read Later", Toast.LENGTH_SHORT).show()
+                } else {
+                    databaseHelper.removeFromReadLater(article.title)
+                    article.isSaved = false
+                    Toast.makeText(this, "Removed from Read Later", Toast.LENGTH_SHORT).show()
+                }
+
+                newsAdapter.notifyDataSetChanged()
+            },
+            // Blok untuk klik item berita (BARU)
+            onItemClick = { article ->
+                // Buat Intent untuk membuka NewsDetailActivity
+                val intent = Intent(this, NewsDetailActivity::class.java).apply {
+                    // Kirim URL dan Judul berita ke activity selanjutnya
+                    putExtra("NEWS_URL", article.url)
+                    putExtra("NEWS_TITLE", article.title)
+                }
+                startActivity(intent)
             }
-
-            newsAdapter.notifyDataSetChanged()
-        }
+        )
 
         recyclerView.adapter = newsAdapter
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -78,51 +92,62 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun fetchNews() {
-        // API Key GNews baru Anda
+        // API Key untuk GNews.io
         val gnewsApiKey = "779beec2d161051a25d716245ce04b01"
 
-        // URL untuk GNews API
+        // URL endpoint GNews untuk mendapatkan berita utama
         val url = "https://gnews.io/api/v4/top-headlines?category=general&lang=en&country=us&max=10&apikey=$gnewsApiKey"
 
         val requestQueue = Volley.newRequestQueue(this)
 
-        // Inisialisasi DatabaseHelper di luar request agar bisa diakses
+        // Pastikan databaseHelper sudah diinisialisasi sebelum digunakan
         if (!::databaseHelper.isInitialized) {
             databaseHelper = DatabaseHelper(this)
         }
 
-        // --- OPTIMISASI DIMULAI DI SINI ---
-        // 1. Ambil semua judul berita yang sudah disimpan dalam satu kali query
+        // --- OPTIMISASI PERFORMA ---
+        // 1. Ambil semua judul berita yang sudah disimpan dalam satu kali query ke database.
+        //    Ini jauh lebih cepat daripada query ke database di dalam setiap iterasi loop.
         val savedNewsTitles = databaseHelper.getAllReadLater().map { it.title }.toSet()
 
         val jsonObjectRequest = JsonObjectRequest(Request.Method.GET, url, null,
             { response ->
-                val articles = response.getJSONArray("articles")
-                val newsList = mutableListOf<NewsArticle>()
+                try {
+                    val articles = response.getJSONArray("articles")
+                    val newsList = mutableListOf<NewsArticle>()
 
-                for (i in 0 until articles.length()) {
-                    val item = articles.getJSONObject(i)
-                    val title = item.getString("title")
-                    // GNews menggunakan "publishedAt"
-                    val publishedAt = item.getString("publishedAt")
-                    // GNews menggunakan "image" untuk URL gambar
-                    val imageUrl = item.getString("image")
+                    for (i in 0 until articles.length()) {
+                        val item = articles.getJSONObject(i)
 
-                    // 2. Cek ke Set (sangat cepat), bukan ke database di dalam loop
-                    val isSaved = savedNewsTitles.contains(title)
+                        // Ambil data dari JSON
+                        val title = item.getString("title")
+                        val publishedAt = item.getString("publishedAt")
+                        val imageUrl = item.getString("image")
+                        val articleUrl = item.getString("url") // URL untuk detail berita
 
-                    newsList.add(NewsArticle(title, publishedAt, imageUrl, isSaved))
+                        // 2. Cek apakah berita sudah disimpan dengan membandingkan dengan Set di memori.
+                        //    Ini adalah operasi yang sangat cepat.
+                        val isSaved = savedNewsTitles.contains(title)
+
+                        // Tambahkan berita ke dalam daftar
+                        newsList.add(NewsArticle(title, publishedAt, imageUrl, articleUrl, isSaved))
+                    }
+
+                    // Perbarui adapter dengan data berita yang baru
+                    newsAdapter.updateData(newsList)
+
+                } catch (e: Exception) {
+                    // Tangani jika ada error saat parsing JSON
+                    Toast.makeText(this, "Error parsing data: ${e.message}", Toast.LENGTH_LONG).show()
                 }
-                // --- OPTIMISASI SELESAI ---
-
-                newsAdapter.updateData(newsList)
             },
             { error ->
-                // Menampilkan pesan error yang lebih jelas di Toast
-                val errorMessage = error.message ?: "Unknown error"
+                // Tangani jika ada error jaringan
+                val errorMessage = error.message ?: "An unknown network error occurred"
                 Toast.makeText(this, "Error fetching news: $errorMessage", Toast.LENGTH_LONG).show()
             })
 
+        // Tambahkan request ke antrian untuk dieksekusi
         requestQueue.add(jsonObjectRequest)
     }
 }

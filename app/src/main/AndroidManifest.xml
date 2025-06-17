@@ -17,7 +17,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MCSEXLEC">
 
-        <!-- LoginActivity sebagai launcher -->
         <activity
             android:name=".LoginActivity"
             android:exported="true">
@@ -27,35 +26,29 @@
             </intent-filter>
         </activity>
 
-        <!-- RegisterActivity (signup dari login) -->
         <activity
             android:name=".RegisterActivity"
             android:exported="true" />
 
-        <!-- OtpActivity (lanjutan dari login / register) -->
         <activity
             android:name=".OtpActivity"
             android:exported="true" />
 
-        <!-- HomeActivity (setelah OTP) -->
         <activity
             android:name=".HomeActivity"
             android:exported="false" />
 
-        <!-- ReadLaterActivity (akses dari Home) -->
         <activity
             android:name=".ReadLaterActivity"
             android:exported="false" />
 
-        <!-- ProfileActivity (akses dari Home) -->
         <activity
             android:name=".ProfileActivity"
             android:exported="false" />
 
-        <!-- API Key Google Maps -->
-<!--        <meta-data-->
-<!--            android:name="com.google.android.geo.API_KEY"-->
-<!--            android:value="AIzaSyDr37m5aNgHCXmHF4rc55MiIbowovrYFWM" />-->
+        <activity
+            android:name=".NewsDetailActivity"
+            android:exported="false" />
 
     </application>
 
