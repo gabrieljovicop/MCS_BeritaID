@@ -16,40 +16,47 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MCSEXLEC">
-        <activity
-            android:name=".ProfileActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ReadLaterActivity"
-            android:exported="false" />
 
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDr37m5aNgHCXmHF4rc55MiIbowovrYFWM" /> <!-- Ensure LoginActivity is set as the launcher activity -->
+        <!-- LoginActivity sebagai launcher -->
         <activity
             android:name=".LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity> <!-- RegisterActivity -->
+        </activity>
+
+        <!-- RegisterActivity (signup dari login) -->
         <activity
             android:name=".RegisterActivity"
-            android:exported="true" /> <!-- OtpActivity -->
+            android:exported="true" />
+
+        <!-- OtpActivity (lanjutan dari login / register) -->
         <activity
             android:name=".OtpActivity"
-            android:exported="true" /> <!-- HomeActivity -->
+            android:exported="true" />
+
+        <!-- HomeActivity (setelah OTP) -->
         <activity
             android:name=".HomeActivity"
             android:exported="false" />
-<!--        <activity-->
-<!--            android:name=".DetailFilmActivity"-->
-<!--            android:exported="true" /> &lt;!&ndash; HistoryActivity &ndash;&gt;-->
-<!--        <activity-->
-<!--            android:name=".HistoryActivity"-->
-<!--            android:exported="true" />-->
+
+        <!-- ReadLaterActivity (akses dari Home) -->
+        <activity
+            android:name=".ReadLaterActivity"
+            android:exported="false" />
+
+        <!-- ProfileActivity (akses dari Home) -->
+        <activity
+            android:name=".ProfileActivity"
+            android:exported="false" />
+
+        <!-- API Key Google Maps -->
+<!--        <meta-data-->
+<!--            android:name="com.google.android.geo.API_KEY"-->
+<!--            android:value="AIzaSyDr37m5aNgHCXmHF4rc55MiIbowovrYFWM" />-->
+
     </application>
 
 </manifest>
