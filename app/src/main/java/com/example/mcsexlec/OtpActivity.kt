@@ -35,7 +35,7 @@ class OtpActivity : AppCompatActivity() {
                 showError("OTP must be filled!")
             } else if (otp == "123456") { // Gimmick OTP validation
                 Toast.makeText(this, "OTP Verified", Toast.LENGTH_SHORT).show()
-//                ?val intent = Intent(this, HomeActivity::class.java)
+                val intent = Intent(this, HomeActivity::class.java)
                 startActivity(intent)
                 // Navigate to Home Activity or Dashboard (you can replace this with your target activity)
                 // val intent = Intent(this, HomeActivity::class.java)
