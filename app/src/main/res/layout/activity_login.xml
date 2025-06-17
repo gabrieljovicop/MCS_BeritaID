@@ -8,16 +8,17 @@
     android:background="@color/cardview_dark_background">
 
     <!-- Teks Judul -->
+
+    <!-- EditText untuk Nomor Telepon -->
     <TextView
         android:id="@+id/tvAppName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="CINA Vico"
+        android:layout_marginBottom="20dp"
+        android:text="CINA KOTAK KONTOL"
         android:textColor="@android:color/white"
-        android:textSize="30sp"
-        android:layout_marginBottom="20dp"/>
+        android:textSize="30sp" />
 
-    <!-- EditText untuk Nomor Telepon -->
     <EditText
         android:id="@+id/etUsername"
         android:layout_width="match_parent"
